@@ -10,8 +10,13 @@ using PcmBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Force backend to listen on HTTP port 5000
-builder.WebHost.UseUrls("http://localhost:5050", "http://0.0.0.0:5050");
+// ==================== Port binding (Render-compatible) ====================
+// Render cung cấp PORT. Local thì không có PORT -> dùng 5050
+var portEnv = Environment.GetEnvironmentVariable("PORT");
+var port = string.IsNullOrWhiteSpace(portEnv) ? "5050" : portEnv;
+
+// Chỉ bind 0.0.0.0 để chạy trong container / VPS
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // ==================== Database Configuration ====================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -157,15 +162,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ==================== Middleware Pipeline ====================
-// Enable Swagger in all environments for testing
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "PCM API v1");
     c.RoutePrefix = "swagger";
 });
-
-// app.UseHttpsRedirection(); // Disabled for development - allow HTTP
 
 // Handle CORS preflight OPTIONS requests
 app.Use(async (context, next) =>
