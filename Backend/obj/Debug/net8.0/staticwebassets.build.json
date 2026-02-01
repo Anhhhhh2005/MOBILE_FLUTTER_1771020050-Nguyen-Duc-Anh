@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "zXwTTGx8UADQ9ZgWiBtM4EWG21Bn/FGFs/bA6eEYHWI=",
+  "Source": "PcmBackend",
+  "BasePath": "_content/PcmBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
