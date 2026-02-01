@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'providers/providers.dart';
 import 'screens/screens.dart';
 
@@ -15,8 +16,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..init()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
+        ChangeNotifierProvider<ThemeProvider>(
+          lazy: false,
+          create: (_) {
+            final p = ThemeProvider();
+            // An toàn nhất: init sau frame đầu tiên
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              p.init();
+            });
+            return p;
+          },
+        ),
+        ChangeNotifierProvider<AuthProvider>(
+          lazy: false,
+          create: (_) {
+            final p = AuthProvider();
+            // An toàn nhất: init sau frame đầu tiên
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              p.init();
+            });
+            return p;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => TournamentProvider()),
@@ -38,17 +59,12 @@ class MyApp extends StatelessWidget {
   }
 
   Widget _buildHome(AuthProvider authProvider) {
-    // Show splash while initializing
     if (!authProvider.isInitialized) {
       return const SplashScreen();
     }
-
-    // Show login if not logged in
     if (!authProvider.isLoggedIn) {
       return const LoginScreen();
     }
-
-    // Show main app
     return const MainNavigationScreen();
   }
 }

@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/providers.dart';
-import '../../widgets/widgets.dart'; // để dùng ThemeProvider nếu bạn export ở đây, nếu lỗi thì bỏ dòng này và import đúng file ThemeProvider
 import '../home/home_screen.dart';
 import 'booking_screen.dart';
 import 'tournaments_screen.dart';
@@ -30,12 +30,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize providers
-    context.read<NotificationProvider>()
-      ..init()
-      ..loadUnreadCount();
-    context.read<WalletProvider>().loadBalance();
-    context.read<BookingProvider>().loadCourts();
+
+    // CHỐT LỖI: init/load provider sau frame đầu để tránh notifyListeners đúng lúc build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      context.read<NotificationProvider>()
+        ..init()
+        ..loadUnreadCount();
+
+      context.read<WalletProvider>().loadBalance();
+      context.read<BookingProvider>().loadCourts();
+    });
   }
 
   @override
@@ -69,8 +75,7 @@ class _BottomNavGlass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final notif = context.watch<NotificationProvider>();
-    final unread = notif.unreadCount;
+    final unread = context.watch<NotificationProvider>().unreadCount;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(_radius),
@@ -167,7 +172,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = ThemeProvider.primaryColor;
+    // Không phụ thuộc ThemeProvider để tránh import sai
+    final activeColor = Theme.of(context).colorScheme.primary;
     final inactiveColor =
         Theme.of(context).colorScheme.onSurface.withOpacity(0.55);
 

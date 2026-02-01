@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 import '../services/services.dart';
 
@@ -13,46 +16,66 @@ class WalletProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> loadBalance() async {
     try {
       _balance = await apiService.getWalletBalance();
-      notifyListeners();
-    } catch (e) {
+      _safeNotify();
+    } catch (_) {
       // Ignore
     }
   }
 
   Future<void> loadTransactions({int? type}) async {
     _isLoading = true;
-    notifyListeners();
+    _errorMessage = null;
+    _safeNotify();
 
     try {
       final response = await apiService.getWalletTransactions(type: type);
-      final items = response['items'] as List;
-      _transactions = items.map((e) => WalletTransaction.fromJson(e)).toList();
+      final items = (response['items'] as List? ?? const []);
+      _transactions =
+          items.map((e) => WalletTransaction.fromJson(e)).toList();
       _errorMessage = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể tải lịch sử giao dịch';
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<bool> deposit(double amount, {String? description}) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await apiService.deposit(amount, description: description);
+
+      // Nên refresh lại số dư + lịch sử để UI đúng ngay khi nạp xong
+      await loadBalance();
+      await loadTransactions();
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return true;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể gửi yêu cầu nạp tiền';
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }
@@ -71,46 +94,61 @@ class BookingProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> loadCourts() async {
     try {
       final response = await apiService.getCourts();
       _courts = response.map((e) => Court.fromJson(e)).toList();
-      notifyListeners();
-    } catch (e) {
+      _safeNotify();
+    } catch (_) {
       // Ignore
     }
   }
 
   Future<void> loadCalendar(DateTime from, DateTime to) async {
     _isLoading = true;
-    notifyListeners();
+    _errorMessage = null;
+    _safeNotify();
 
     try {
       final response = await apiService.getCalendar(from, to);
       _calendarSlots = response.map((e) => CalendarSlot.fromJson(e)).toList();
       _errorMessage = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể tải lịch đặt sân';
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> loadMyBookings({BookingStatus? status}) async {
     _isLoading = true;
-    notifyListeners();
+    _errorMessage = null;
+    _safeNotify();
 
     try {
       final response = await apiService.getMyBookings(status: status?.index);
       _myBookings = response.map((e) => Booking.fromJson(e)).toList();
       _errorMessage = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể tải danh sách booking';
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<bool> createBooking(
@@ -120,28 +158,40 @@ class BookingProvider extends ChangeNotifier {
   ) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await apiService.createBooking(courtId, startTime, endTime);
+
+      // loadMyBookings đã tự set loading/notify rồi, nên ở đây chỉ cần await
       await loadMyBookings();
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return true;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể đặt sân';
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }
 
   Future<bool> cancelBooking(int id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _safeNotify();
+
     try {
       await apiService.cancelBooking(id);
       await loadMyBookings();
+      _isLoading = false;
+      _safeNotify();
       return true;
-    } catch (e) {
+    } catch (_) {
+      _errorMessage = 'Không thể hủy booking';
+      _isLoading = false;
+      _safeNotify();
       return false;
     }
   }
@@ -158,37 +208,51 @@ class TournamentProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> loadTournaments({TournamentStatus? status}) async {
     _isLoading = true;
-    // Use Future.microtask to avoid calling notifyListeners during build
-    Future.microtask(() => notifyListeners());
+    _errorMessage = null;
+    _safeNotify();
 
     try {
       final response = await apiService.getTournaments(status: status?.index);
       _tournaments = response.map((e) => Tournament.fromJson(e)).toList();
       _errorMessage = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể tải danh sách giải đấu';
     }
 
     _isLoading = false;
-    Future.microtask(() => notifyListeners());
+    _safeNotify();
   }
 
   Future<void> loadTournamentDetail(int id) async {
     _isLoading = true;
-    notifyListeners();
+    _errorMessage = null;
+    _safeNotify();
 
     try {
       final response = await apiService.getTournament(id);
       _selectedTournament = TournamentDetail.fromJson(response);
       _errorMessage = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể tải chi tiết giải đấu';
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<bool> joinTournament(
@@ -198,7 +262,7 @@ class TournamentProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       await apiService.joinTournament(
@@ -207,13 +271,14 @@ class TournamentProvider extends ChangeNotifier {
         partnerId: partnerId,
       );
       await loadTournamentDetail(id);
+
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return true;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Không thể đăng ký giải đấu';
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }
@@ -228,37 +293,58 @@ class NotificationProvider extends ChangeNotifier {
   int get unreadCount => _unreadCount;
   bool get isLoading => _isLoading;
 
+  StreamSubscription? _sub;
+  bool _inited = false;
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
+
   void init() {
-    // Listen to SignalR notifications
-    signalRService.notifications.listen((event) {
+    if (_inited) return;
+    _inited = true;
+
+    _sub = signalRService.notifications.listen((event) {
+      // Nếu provider đã dispose mà stream vẫn bắn, bỏ qua
+      if (_disposed) return;
+
       _unreadCount++;
-      notifyListeners();
+      _safeNotify();
     });
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _sub?.cancel();
+    _sub = null;
+    super.dispose();
   }
 
   Future<void> loadNotifications() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final response = await apiService.getNotifications();
-      _notifications = response
-          .map((e) => AppNotification.fromJson(e))
-          .toList();
+      _notifications =
+          response.map((e) => AppNotification.fromJson(e)).toList();
       _unreadCount = _notifications.where((n) => !n.isRead).length;
-    } catch (e) {
+    } catch (_) {
       // Ignore
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> loadUnreadCount() async {
     try {
       _unreadCount = await apiService.getUnreadNotificationCount();
-      notifyListeners();
-    } catch (e) {
+      _safeNotify();
+    } catch (_) {
       // Ignore
     }
   }
@@ -266,12 +352,15 @@ class NotificationProvider extends ChangeNotifier {
   Future<void> markAsRead(int id) async {
     try {
       await apiService.markNotificationAsRead(id);
+
+      // Update local nhanh (tránh UI lag)
       final index = _notifications.indexWhere((n) => n.id == id);
       if (index != -1 && !_notifications[index].isRead) {
         _unreadCount = (_unreadCount - 1).clamp(0, _notifications.length);
       }
+
       await loadNotifications();
-    } catch (e) {
+    } catch (_) {
       // Ignore
     }
   }
@@ -281,7 +370,7 @@ class NotificationProvider extends ChangeNotifier {
       await apiService.markAllNotificationsAsRead();
       _unreadCount = 0;
       await loadNotifications();
-    } catch (e) {
+    } catch (_) {
       // Ignore
     }
   }
