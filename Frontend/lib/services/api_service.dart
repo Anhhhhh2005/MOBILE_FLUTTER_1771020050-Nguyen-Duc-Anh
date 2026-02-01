@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiService {
   // For Android Emulator: use 10.0.2.2 instead of localhost
   // For iOS Simulator/Chrome: use 127.0.0.1 or localhost
-  static const String baseUrl = 'https://mobile-flutter-1771020050-nguyen-duc-anh.onrender.com';
+  static const String baseUrl = 'https://mobile-flutter-1771020050-nguyen-duc-anh.onrender.com/api';
 
   late Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
