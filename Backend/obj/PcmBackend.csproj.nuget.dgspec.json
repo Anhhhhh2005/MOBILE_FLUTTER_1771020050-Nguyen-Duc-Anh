@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Mobile_App/Backend/PcmBackend.csproj": {}
+    "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Backend/PcmBackend.csproj": {}
   },
   "projects": {
-    "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Mobile_App/Backend/PcmBackend.csproj": {
+    "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Backend/PcmBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Mobile_App/Backend/PcmBackend.csproj",
+        "projectUniqueName": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Backend/PcmBackend.csproj",
         "projectName": "PcmBackend",
-        "projectPath": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Mobile_App/Backend/PcmBackend.csproj",
+        "projectPath": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Backend/PcmBackend.csproj",
         "packagesPath": "/Users/ngocanh/.nuget/packages/",
-        "outputPath": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Mobile_App/Backend/obj/",
+        "outputPath": "/Users/ngocanh/MOBILE_FLUTTER_1771020050-Nguyen-Duc-Anh/Backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/ngocanh/.nuget/NuGet/NuGet.Config"
